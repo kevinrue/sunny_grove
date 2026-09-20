@@ -1,4 +1,4 @@
-# Maria Zelda
+# Sunny Grove
 
 ## Product Goal
 
@@ -21,7 +21,7 @@ The game should feel like a gentle toy, not a challenge: no failure state, no ti
 - Make objects large, colorful, well-spaced, and forgiving for a toddler.
 - Keep exploration calm: no hazards, enemies, timers, health, competition, or failure states.
 - Show large, persistent, icon-paired counters for gems and flowers so collection directly supports counting practice.
-- Create original art and sound. It may evoke broad classic top-down pixel-adventure conventions, but must not copy Zelda or other protected characters, maps, sprites, music, or UI.
+- Create original art and sound. Do not copy protected characters, maps, sprites, music, UI, or other source material.
 - Run fully offline with Python and pygame; bundled assets must resolve independently of the launch directory.
 
 ## World
@@ -40,7 +40,7 @@ Keep terrain data, bounds, walkability, and deterministic collectible spawn posi
 
 ## Character, Collectibles, and Counters
 
-The protagonist is an original pixel-art princess with an easily legible crown, hair, dress, and outline. Do not resemble a known copyrighted princess or Zelda character.
+The protagonist is an original pixel-art princess with an easily legible crown, hair, dress, and outline. Do not resemble a known copyrighted character.
 
 There are two explicit collectible types: `GEM` and `FLOWER`.
 
@@ -69,7 +69,7 @@ Use a bright, varied palette. Sound must be optional: initialize the mixer once,
 
 ```text
 main.py
-	-> maria_zelda.app.run()
+	-> sunny_grove.app.run()
 			-> GameState: movement, collision, pickup, counters, celebration, reset
 			-> World: map, terrain, bounds, spawn data
 			-> pygame: input, asset loading, optional sound, rendering
@@ -85,7 +85,7 @@ assets/
 	tiles/
 	sprites/
 	sounds/
-src/maria_zelda/
+src/sunny_grove/
 	__init__.py
 	app.py
 	game_state.py

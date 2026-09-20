@@ -1,6 +1,6 @@
 from random import Random
 
-from maria_zelda.world import CollectibleKind, MAP_COLUMNS, MAP_ROWS, TILE_SIZE, World
+from sunny_grove.world import CollectibleKind, MAP_COLUMNS, MAP_ROWS, TILE_SIZE, World
 
 
 def test_walkability_and_bounds() -> None:

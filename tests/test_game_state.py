@@ -3,8 +3,8 @@ from random import Random
 
 import pytest
 
-from maria_zelda.game_state import GameState
-from maria_zelda.world import CollectibleKind, TILE_SIZE, Terrain, World
+from sunny_grove.game_state import GameState
+from sunny_grove.world import CollectibleKind, TILE_SIZE, Terrain, World
 
 
 def test_diagonal_and_straight_movement_cover_equal_distance() -> None:
