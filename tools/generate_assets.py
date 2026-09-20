@@ -95,33 +95,38 @@ def _princess(facing: str, frame: int) -> pygame.Surface:
     princess = _surface()
     dress_bottom = 14 if frame == 0 else 15
     pygame.draw.ellipse(princess, (77, 48, 66), (3, 2, 10, 11))
-    pygame.draw.circle(princess, (255, 205, 171), (8, 6), 4)
     pygame.draw.polygon(princess, (255, 221, 66), ((4, 3), (6, 0), (8, 3), (10, 0), (12, 3)))
     pygame.draw.polygon(princess, (224, 89, 165), ((8, 9), (3, dress_bottom), (13, dress_bottom)))
-    eye_positions = {
-        "down": ((6, 6), (10, 6)),
-        "up": (),
-        "left": ((5, 6),),
-        "right": ((11, 6),),
-    }
-    nose_positions = {
-        "down": ((8, 7),),
-        "up": (),
-        "left": ((5, 7),),
-        "right": ((11, 7),),
-    }
-    mouth_lines = {
-        "down": ((7, 9), (9, 9)),
-        "up": None,
-        "left": ((4, 9), (5, 9)),
-        "right": ((11, 9), (12, 9)),
-    }
-    for eye in eye_positions[facing]:
+    if facing == "down":
+        pygame.draw.circle(princess, (255, 205, 171), (8, 6), 4)
+        for eye in ((6, 6), (10, 6)):
+            princess.set_at(eye, (52, 39, 48))
+        princess.set_at((8, 7), (211, 132, 112))
+        pygame.draw.line(princess, (178, 67, 99), (7, 9), (9, 9))
+    elif facing == "up":
+        pygame.draw.ellipse(princess, (77, 48, 66), (3, 2, 10, 10))
+        pygame.draw.line(princess, (123, 75, 87), (5, 5), (5, 9))
+        pygame.draw.line(princess, (123, 75, 87), (8, 4), (8, 10))
+        pygame.draw.line(princess, (123, 75, 87), (11, 5), (11, 9))
+    else:
+        is_left = facing == "left"
+        profile = (
+            ((7, 3), (5, 3), (4, 5), (3, 6), (4, 7), (5, 8), (7, 9), (9, 8), (9, 4))
+            if is_left
+            else ((9, 3), (11, 3), (12, 5), (13, 6), (12, 7), (11, 8), (9, 9), (7, 8), (7, 4))
+        )
+        pygame.draw.polygon(princess, (255, 205, 171), profile)
+        eye = (5, 5) if is_left else (11, 5)
+        nose = (3, 6) if is_left else (13, 6)
+        mouth_start = (4, 8) if is_left else (11, 8)
+        mouth_end = (5, 8) if is_left else (12, 8)
+        ear = (8, 6) if is_left else (8, 6)
         princess.set_at(eye, (52, 39, 48))
-    for nose in nose_positions[facing]:
         princess.set_at(nose, (211, 132, 112))
-    if mouth_line := mouth_lines[facing]:
-        pygame.draw.line(princess, (178, 67, 99), *mouth_line)
+        princess.set_at(ear, (211, 132, 112))
+        pygame.draw.line(princess, (178, 67, 99), mouth_start, mouth_end)
+        hair_x = 8 if is_left else 7
+        pygame.draw.line(princess, (123, 75, 87), (hair_x, 3), (hair_x, 8))
     return princess
 
 
