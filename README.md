@@ -19,10 +19,28 @@ pyenv exec python -m venv .venv
 
 VS Code selects `.venv` automatically. Its integrated terminals activate it as well; for an external terminal, use the explicit `.\.venv\Scripts\python.exe` commands above.
 
+## Run on Ubuntu
+
+Install Python's virtual-environment support, then create the environment and install the project dependencies:
+
+```bash
+sudo apt update
+sudo apt install python3-venv
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python main.py
+```
+
 ## Test
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest
+```
+
+On Ubuntu:
+
+```bash
+.venv/bin/python -m pytest
 ```
 
 Use the arrow keys to move. Escape or close the window to quit.
