@@ -1,6 +1,6 @@
 # Maria Zelda
 
-A calm, arrow-key exploration game for young children. Guide an original princess around a pixel-art meadow to collect gems and flowers while practicing counting.
+A calm, full-screen, arrow-key exploration game for young children. Guide an original princess around a pixel-art meadow to collect gems and flowers while practicing counting.
 
 ## Run on Windows
 

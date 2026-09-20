@@ -25,7 +25,8 @@ class Assets:
 
 def run() -> None:
     pygame.init()
-    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    game_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Maria Zelda")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 34)
@@ -55,7 +56,8 @@ def run() -> None:
         if not was_celebrating and state.is_celebrating and celebration_sound is not None:
             celebration_sound.play()
 
-        _draw_scene(screen, state, assets, font, large_font)
+        _draw_scene(game_surface, state, assets, font, large_font)
+        _present_scene(screen, game_surface)
         pygame.display.flip()
 
     pygame.quit()
@@ -100,7 +102,19 @@ def _load_images() -> Assets:
 def _load_scaled(path: Path) -> pygame.Surface:
     image = pygame.image.load(path).convert_alpha()
     return pygame.transform.scale(image, (TILE_SIZE, TILE_SIZE))
-    return None, None
+
+
+def _present_scene(screen: pygame.Surface, game_surface: pygame.Surface) -> None:
+    display_width, display_height = screen.get_size()
+    scale = min(display_width / WINDOW_WIDTH, display_height / WINDOW_HEIGHT)
+    scene_size = (round(WINDOW_WIDTH * scale), round(WINDOW_HEIGHT * scale))
+    scene = pygame.transform.scale(game_surface, scene_size)
+    position = (
+        (display_width - scene_size[0]) // 2,
+        (display_height - scene_size[1]) // 2,
+    )
+    screen.fill(BACKGROUND)
+    screen.blit(scene, position)
 
 
 def _draw_scene(
