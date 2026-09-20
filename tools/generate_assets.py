@@ -104,8 +104,24 @@ def _princess(facing: str, frame: int) -> pygame.Surface:
         "left": ((5, 6),),
         "right": ((11, 6),),
     }
+    nose_positions = {
+        "down": ((8, 7),),
+        "up": (),
+        "left": ((5, 7),),
+        "right": ((11, 7),),
+    }
+    mouth_lines = {
+        "down": ((7, 9), (9, 9)),
+        "up": None,
+        "left": ((4, 9), (5, 9)),
+        "right": ((11, 9), (12, 9)),
+    }
     for eye in eye_positions[facing]:
         princess.set_at(eye, (52, 39, 48))
+    for nose in nose_positions[facing]:
+        princess.set_at(nose, (211, 132, 112))
+    if mouth_line := mouth_lines[facing]:
+        pygame.draw.line(princess, (178, 67, 99), *mouth_line)
     return princess
 
 

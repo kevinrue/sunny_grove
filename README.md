@@ -10,11 +10,14 @@ A calm, arrow-key exploration game for young children. Guide an original princes
 .\.venv\Scripts\python.exe main.py
 ```
 
-If `.venv` has not been created yet, create it with an installed Python interpreter:
+If `.venv` has not been created yet, create it with the project's pinned Python version and then install the dependencies:
 
 ```powershell
-python -m venv .venv
+pyenv exec python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
+
+VS Code selects `.venv` automatically. Its integrated terminals activate it as well; for an external terminal, use the explicit `.\.venv\Scripts\python.exe` commands above.
 
 ## Test
 
