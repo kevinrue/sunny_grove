@@ -20,6 +20,9 @@ class Assets:
     tiles: dict[Terrain, pygame.Surface]
     gem: pygame.Surface
     flower: pygame.Surface
+    gate_closed: pygame.Surface
+    gate_open: pygame.Surface
+    exit_arrow: pygame.Surface
     princess: dict[tuple[str, int], pygame.Surface]
 
 
@@ -30,7 +33,6 @@ def run() -> None:
     pygame.display.set_caption("Maria Zelda")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 34)
-    large_font = pygame.font.Font(None, 54)
     assets = _load_images()
     pickup_sound, celebration_sound = _load_sounds()
     state = GameState(World())
@@ -49,14 +51,14 @@ def run() -> None:
             int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]),
             int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]),
         )
-        was_celebrating = state.is_celebrating
+        gate_was_open = state.gate_open
         collected = state.update(direction, delta_seconds)
         if collected and pickup_sound is not None:
             pickup_sound.play()
-        if not was_celebrating and state.is_celebrating and celebration_sound is not None:
+        if not gate_was_open and state.gate_open and celebration_sound is not None:
             celebration_sound.play()
 
-        _draw_scene(game_surface, state, assets, font, large_font)
+        _draw_scene(game_surface, state, assets, font)
         _present_scene(screen, game_surface)
         pygame.display.flip()
 
@@ -95,6 +97,9 @@ def _load_images() -> Assets:
         tiles=tiles,
         gem=_load_scaled(ASSET_ROOT / "sprites" / "gem.png"),
         flower=_load_scaled(ASSET_ROOT / "sprites" / "flower.png"),
+        gate_closed=_load_scaled(ASSET_ROOT / "sprites" / "gate_closed.png"),
+        gate_open=_load_scaled(ASSET_ROOT / "sprites" / "gate_open.png"),
+        exit_arrow=_load_scaled(ASSET_ROOT / "sprites" / "exit_arrow.png"),
         princess=princess,
     )
 
@@ -122,20 +127,14 @@ def _draw_scene(
     state: GameState,
     assets: Assets,
     font: pygame.font.Font,
-    large_font: pygame.font.Font,
 ) -> None:
     screen.fill(BACKGROUND)
     _draw_world(screen, state.world, assets)
+    _draw_gate(screen, state, assets)
     for pickup in state.active_pickups.values():
         _draw_pickup(screen, assets, pickup.kind, int(pickup.x), int(pickup.y + HUD_HEIGHT))
     _draw_princess(screen, assets, state)
     _draw_hud(screen, state, assets, font)
-    if state.is_celebrating:
-        message = large_font.render("Wonderful!", True, (255, 245, 183))
-        shadow = large_font.render("Wonderful!", True, (88, 65, 82))
-        center_x = WINDOW_WIDTH // 2 - message.get_width() // 2
-        screen.blit(shadow, (center_x + 2, HUD_HEIGHT + 34))
-        screen.blit(message, (center_x, HUD_HEIGHT + 32))
 
 
 def _draw_world(screen: pygame.Surface, world: World, assets: Assets) -> None:
@@ -155,6 +154,21 @@ def _draw_pickup(
 ) -> None:
     image = assets.gem if kind is CollectibleKind.GEM else assets.flower
     screen.blit(image, image.get_rect(center=(center_x, center_y)))
+
+
+def _draw_gate(screen: pygame.Surface, state: GameState, assets: Assets) -> None:
+    gate = state.world.gate
+    gate_image = assets.gate_open if state.gate_open else assets.gate_closed
+    gate_center = (int(gate.center[0]), int(gate.center[1] + HUD_HEIGHT))
+    screen.blit(gate_image, gate_image.get_rect(center=gate_center))
+    if not state.gate_open:
+        return
+
+    rotations = {"up": 0, "right": -90, "down": 180, "left": 90}
+    arrow = pygame.transform.rotate(assets.exit_arrow, rotations[gate.facing])
+    entry_x, entry_y = gate.entry_tile
+    entry_center = (entry_x * TILE_SIZE + TILE_SIZE // 2, entry_y * TILE_SIZE + TILE_SIZE // 2 + HUD_HEIGHT)
+    screen.blit(arrow, arrow.get_rect(center=entry_center))
 
 
 def _draw_princess(screen: pygame.Surface, assets: Assets, state: GameState) -> None:

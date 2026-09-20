@@ -97,6 +97,26 @@ def _save_sprites() -> None:
     pygame.draw.circle(flower, (255, 219, 59), (8, 8), 3)
     _save(flower, SPRITES / "flower.png")
 
+    gate_closed = _surface()
+    pygame.draw.rect(gate_closed, (102, 61, 35), (2, 2, 3, 13))
+    pygame.draw.rect(gate_closed, (102, 61, 35), (11, 2, 3, 13))
+    pygame.draw.rect(gate_closed, (194, 126, 63), (4, 5, 8, 7))
+    pygame.draw.line(gate_closed, (236, 175, 90), (4, 6), (11, 6), 1)
+    pygame.draw.line(gate_closed, (124, 73, 39), (4, 10), (11, 10), 1)
+    _save(gate_closed, SPRITES / "gate_closed.png")
+
+    gate_open = _surface()
+    pygame.draw.rect(gate_open, (102, 61, 35), (2, 2, 3, 13))
+    pygame.draw.rect(gate_open, (102, 61, 35), (11, 2, 3, 13))
+    pygame.draw.rect(gate_open, (236, 175, 90), (2, 2, 3, 2))
+    pygame.draw.rect(gate_open, (236, 175, 90), (11, 2, 3, 2))
+    _save(gate_open, SPRITES / "gate_open.png")
+
+    exit_arrow = _surface()
+    pygame.draw.polygon(exit_arrow, (137, 70, 193), ((8, 1), (14, 8), (11, 8), (11, 14), (5, 14), (5, 8), (2, 8)))
+    pygame.draw.polygon(exit_arrow, (255, 215, 66), ((8, 3), (12, 8), (9, 8), (9, 12), (7, 12), (7, 8), (4, 8)))
+    _save(exit_arrow, SPRITES / "exit_arrow.png")
+
 
 def _princess(facing: str, frame: int) -> pygame.Surface:
     princess = _surface()

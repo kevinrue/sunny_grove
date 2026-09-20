@@ -1,14 +1,15 @@
 from math import hypot, isclose
+from random import Random
 
 import pytest
 
-from maria_zelda.game_state import CELEBRATION_SECONDS, GameState
-from maria_zelda.world import CollectibleKind, World
+from maria_zelda.game_state import GameState
+from maria_zelda.world import CollectibleKind, TILE_SIZE, Terrain, World
 
 
 def test_diagonal_and_straight_movement_cover_equal_distance() -> None:
-    straight = GameState(World())
-    diagonal = GameState(World())
+    straight = GameState(World(Random(1)))
+    diagonal = GameState(World(Random(1)))
     start_straight = (straight.x, straight.y)
     start_diagonal = (diagonal.x, diagonal.y)
 
@@ -21,7 +22,7 @@ def test_diagonal_and_straight_movement_cover_equal_distance() -> None:
 
 
 def test_pickups_increment_only_their_matching_counter() -> None:
-    state = GameState(World())
+    state = GameState(World(Random(2)))
     gem = next(pickup for pickup in state.active_pickups.values() if pickup.kind is CollectibleKind.GEM)
     state.x, state.y = gem.x, gem.y
 
@@ -36,26 +37,23 @@ def test_pickups_increment_only_their_matching_counter() -> None:
 
 
 @pytest.mark.parametrize(
-    ("start", "direction"),
-    [
-        ((2 * 32 + 16, 3 * 32 + 16), (1, 0)),
-        ((19 * 32 + 16, 3 * 32 + 16), (1, 0)),
-        ((2 * 32 + 16, 8 * 32 + 16), (1, 0)),
-    ],
+    "terrain",
+    [Terrain.TREE, Terrain.MOUNTAIN, Terrain.WATER],
 )
-def test_solid_terrain_blocks_the_princess(
-    start: tuple[int, int], direction: tuple[int, int]
-) -> None:
-    state = GameState(World())
-    state.x, state.y = start
+def test_solid_terrain_blocks_the_princess(terrain: Terrain) -> None:
+    world = World(Random(3))
+    world.tiles[8][11] = terrain
+    world.tiles[8][10] = Terrain.PATH
+    state = GameState(world)
+    state.x, state.y = (10 * TILE_SIZE + TILE_SIZE / 2, 8 * TILE_SIZE + TILE_SIZE / 2)
 
-    state.update(direction, 0.2)
+    state.update((1, 0), 0.2)
 
-    assert (state.x, state.y) == start
+    assert (state.x, state.y) == (10 * TILE_SIZE + TILE_SIZE / 2, 8 * TILE_SIZE + TILE_SIZE / 2)
 
 
 def test_map_edge_blocks_the_princess() -> None:
-    state = GameState(World())
+    state = GameState(World(Random(4)))
     state.x, state.y = (16, 16)
 
     state.update((0, -1), 0.2)
@@ -63,19 +61,23 @@ def test_map_edge_blocks_the_princess() -> None:
     assert (state.x, state.y) == (16, 16)
 
 
-def test_completion_resets_the_round_after_celebration() -> None:
-    state = GameState(World())
+def test_completion_opens_gate_and_entering_it_starts_a_new_level() -> None:
+    state = GameState(World(Random(5)), rng=Random(6))
+    previous_world = state.world
     for pickup in tuple(state.active_pickups.values()):
         state.x, state.y = pickup.x, pickup.y
         state.update((0, 0), 0)
 
-    assert state.is_celebrating
+    assert state.gate_open
     assert state.gem_count == 5
     assert state.flower_count == 5
 
-    state.update((0, 0), CELEBRATION_SECONDS)
+    state.x, state.y = state.world.gate.center
+    state.update((0, 0), 0)
 
-    assert not state.is_celebrating
+    assert state.level == 2
+    assert state.world is not previous_world
+    assert not state.gate_open
     assert state.gem_count == 0
     assert state.flower_count == 0
     assert len(state.active_pickups) == 10
