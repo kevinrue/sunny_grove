@@ -68,8 +68,8 @@ class World:
         self._rng = rng or Random()
         self.entry_gate = self._create_border_gate(entry_facing) if entry_facing else None
         self.spawn_tile = self.entry_gate.entry_tile if self.entry_gate else (14, 9)
-        self.tower_tile = (self.spawn_tile[0] + 1, self.spawn_tile[1]) if self.entry_gate is None else None
         self.gate = self._create_gate()
+        self.tower_tile = self._create_tower_tile() if self.entry_gate is None else None
         self.tiles = [[Terrain.GRASS for _ in range(MAP_COLUMNS)] for _ in range(MAP_ROWS)]
         self._paint_border()
         self._paint_landmarks()
@@ -92,6 +92,15 @@ class World:
         while self.entry_gate is not None and (gate.tile_x, gate.tile_y) == (self.entry_gate.tile_x, self.entry_gate.tile_y):
             gate = self._create_border_gate(self._rng.choice(("up", "down", "left", "right")))
         return gate
+
+    def _create_tower_tile(self) -> tuple[int, int]:
+        spawn_x, spawn_y = self.spawn_tile
+        entry_x, entry_y = self.gate.entry_tile
+        if entry_x != spawn_x:
+            direction_x = 1 if entry_x > spawn_x else -1
+            return spawn_x - direction_x, spawn_y
+        direction_y = 1 if entry_y > spawn_y else -1
+        return spawn_x, spawn_y - direction_y
 
     def _paint_border(self) -> None:
         for column in range(MAP_COLUMNS):

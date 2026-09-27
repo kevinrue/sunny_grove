@@ -1,6 +1,6 @@
 from random import Random
 
-from sunny_grove.world import CollectibleKind, MAP_COLUMNS, MAP_ROWS, TILE_SIZE, World
+from sunny_grove.world import CollectibleKind, MAP_COLUMNS, MAP_ROWS, TILE_SIZE, Terrain, World
 
 
 def test_walkability_and_bounds() -> None:
@@ -46,9 +46,17 @@ def test_random_seeds_generate_different_levels() -> None:
 
 def test_first_world_has_a_tower_by_its_spawn() -> None:
     world = World(Random(9))
+    spawn_x, spawn_y = world.spawn_tile
+    entry_x, entry_y = world.gate.entry_tile
 
-    assert world.tower_tile == (world.spawn_tile[0] + 1, world.spawn_tile[1])
+    if entry_x != spawn_x:
+        direction = (1 if entry_x > spawn_x else -1, 0)
+    else:
+        direction = (0, 1 if entry_y > spawn_y else -1)
+
+    assert world.tower_tile == (spawn_x - direction[0], spawn_y - direction[1])
     assert world.is_walkable(*world.tower_tile)
+    assert world.terrain_at(*world.tower_tile) is Terrain.GRASS
 
 
 def test_entering_world_has_a_permanently_closed_entry_gate() -> None:
