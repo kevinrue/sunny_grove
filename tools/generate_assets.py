@@ -117,6 +117,16 @@ def _save_sprites() -> None:
     pygame.draw.polygon(exit_arrow, (255, 215, 66), ((8, 3), (12, 8), (9, 8), (9, 12), (7, 12), (7, 8), (4, 8)))
     _save(exit_arrow, SPRITES / "exit_arrow.png")
 
+    tower = _surface()
+    pygame.draw.rect(tower, (89, 64, 121), (3, 5, 10, 10))
+    pygame.draw.rect(tower, (151, 121, 180), (4, 6, 8, 8))
+    pygame.draw.polygon(tower, (71, 51, 100), ((1, 6), (8, 0), (15, 6)))
+    pygame.draw.polygon(tower, (220, 94, 139), ((8, 0), (10, 3), (8, 5), (6, 3)))
+    pygame.draw.rect(tower, (68, 49, 82), (6, 10, 4, 5))
+    pygame.draw.rect(tower, (255, 224, 106), (5, 7, 2, 2))
+    pygame.draw.rect(tower, (255, 224, 106), (10, 7, 2, 2))
+    _save(tower, SPRITES / "tower.png")
+
 
 def _princess(facing: str, frame: int) -> pygame.Surface:
     princess = _surface()

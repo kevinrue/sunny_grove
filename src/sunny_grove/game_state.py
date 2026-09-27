@@ -106,8 +106,9 @@ class GameState:
         return self.world.is_gate(int(self.x // TILE_SIZE), int(self.y // TILE_SIZE))
 
     def _advance_level(self) -> None:
+        opposite_facing = {"up": "down", "down": "up", "left": "right", "right": "left"}
         self.level += 1
-        self.world = World(self._rng)
+        self.world = World(self._rng, entry_facing=opposite_facing[self.world.gate.facing])
         self._start_level()
 
     def _start_level(self) -> None:

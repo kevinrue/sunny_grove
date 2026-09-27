@@ -42,3 +42,26 @@ def test_random_seeds_generate_different_levels() -> None:
     first_layout = (first.tiles, first.gate, first.pickup_spawns)
     second_layout = (second.tiles, second.gate, second.pickup_spawns)
     assert first_layout != second_layout
+
+
+def test_first_world_has_a_tower_by_its_spawn() -> None:
+    world = World(Random(9))
+
+    assert world.tower_tile == (world.spawn_tile[0] + 1, world.spawn_tile[1])
+    assert world.is_walkable(*world.tower_tile)
+
+
+def test_entering_world_has_a_permanently_closed_entry_gate() -> None:
+    world = World(Random(10), entry_facing="down")
+
+    assert world.entry_gate is not None
+    assert world.entry_gate.facing == "down"
+    assert world.spawn_tile == world.entry_gate.entry_tile
+    assert world.tower_tile is None
+    assert not world.rect_is_walkable(
+        world.entry_gate.tile_x * TILE_SIZE,
+        world.entry_gate.tile_y * TILE_SIZE,
+        TILE_SIZE,
+        TILE_SIZE,
+        gate_is_open=True,
+    )

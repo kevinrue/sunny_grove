@@ -23,6 +23,7 @@ class Assets:
     gate_closed: pygame.Surface
     gate_open: pygame.Surface
     exit_arrow: pygame.Surface
+    tower: pygame.Surface
     princess: dict[tuple[str, int], pygame.Surface]
 
 
@@ -100,6 +101,7 @@ def _load_images() -> Assets:
         gate_closed=_load_scaled(ASSET_ROOT / "sprites" / "gate_closed.png"),
         gate_open=_load_scaled(ASSET_ROOT / "sprites" / "gate_open.png"),
         exit_arrow=_load_scaled(ASSET_ROOT / "sprites" / "exit_arrow.png"),
+        tower=_load_scaled(ASSET_ROOT / "sprites" / "tower.png"),
         princess=princess,
     )
 
@@ -130,6 +132,7 @@ def _draw_scene(
 ) -> None:
     screen.fill(BACKGROUND)
     _draw_world(screen, state.world, assets)
+    _draw_tower(screen, state.world, assets)
     _draw_gate(screen, state, assets)
     for pickup in state.active_pickups.values():
         _draw_pickup(screen, assets, pickup.kind, int(pickup.x), int(pickup.y + HUD_HEIGHT))
@@ -156,11 +159,23 @@ def _draw_pickup(
     screen.blit(image, image.get_rect(center=(center_x, center_y)))
 
 
+def _draw_tower(screen: pygame.Surface, world: World, assets: Assets) -> None:
+    if world.tower_tile is None:
+        return
+    tile_x, tile_y = world.tower_tile
+    center = (tile_x * TILE_SIZE + TILE_SIZE // 2, tile_y * TILE_SIZE + TILE_SIZE // 2 + HUD_HEIGHT)
+    screen.blit(assets.tower, assets.tower.get_rect(center=center))
+
+
 def _draw_gate(screen: pygame.Surface, state: GameState, assets: Assets) -> None:
     gate = state.world.gate
     gate_image = assets.gate_open if state.gate_open else assets.gate_closed
     gate_center = (int(gate.center[0]), int(gate.center[1] + HUD_HEIGHT))
     screen.blit(gate_image, gate_image.get_rect(center=gate_center))
+    if state.world.entry_gate is not None:
+        entry_gate = state.world.entry_gate
+        entry_center = (int(entry_gate.center[0]), int(entry_gate.center[1] + HUD_HEIGHT))
+        screen.blit(assets.gate_closed, assets.gate_closed.get_rect(center=entry_center))
     if not state.gate_open:
         return
 

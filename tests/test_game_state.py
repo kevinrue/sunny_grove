@@ -77,6 +77,13 @@ def test_completion_opens_gate_and_entering_it_starts_a_new_level() -> None:
 
     assert state.level == 2
     assert state.world is not previous_world
+    assert state.world.entry_gate is not None
+    opposite_facing = {"up": "down", "down": "up", "left": "right", "right": "left"}
+    assert state.world.entry_gate.facing == opposite_facing[previous_world.gate.facing]
+    assert (state.x, state.y) == (
+        state.world.spawn_tile[0] * TILE_SIZE + TILE_SIZE / 2,
+        state.world.spawn_tile[1] * TILE_SIZE + TILE_SIZE / 2,
+    )
     assert not state.gate_open
     assert state.gem_count == 0
     assert state.flower_count == 0

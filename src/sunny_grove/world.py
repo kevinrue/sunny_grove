@@ -64,9 +64,11 @@ class Gate:
 
 
 class World:
-    def __init__(self, rng: Random | None = None) -> None:
+    def __init__(self, rng: Random | None = None, entry_facing: str | None = None) -> None:
         self._rng = rng or Random()
-        self.spawn_tile = (14, 9)
+        self.entry_gate = self._create_border_gate(entry_facing) if entry_facing else None
+        self.spawn_tile = self.entry_gate.entry_tile if self.entry_gate else (14, 9)
+        self.tower_tile = (self.spawn_tile[0] + 1, self.spawn_tile[1]) if self.entry_gate is None else None
         self.gate = self._create_gate()
         self.tiles = [[Terrain.GRASS for _ in range(MAP_COLUMNS)] for _ in range(MAP_ROWS)]
         self._paint_border()
@@ -74,8 +76,9 @@ class World:
         self._paint_path_to_gate()
         self.pickup_spawns = self._create_pickups()
 
-    def _create_gate(self) -> Gate:
-        facing = self._rng.choice(("up", "down", "left", "right"))
+    def _create_border_gate(self, facing: str) -> Gate:
+        if facing not in {"up", "down", "left", "right"}:
+            raise ValueError(f"Unknown gate facing: {facing}")
         if facing in {"up", "down"}:
             tile_x = self._rng.randrange(3, MAP_COLUMNS - 3)
             tile_y = 0 if facing == "up" else MAP_ROWS - 1
@@ -83,6 +86,12 @@ class World:
             tile_x = 0 if facing == "left" else MAP_COLUMNS - 1
             tile_y = self._rng.randrange(3, MAP_ROWS - 3)
         return Gate(tile_x, tile_y, facing)
+
+    def _create_gate(self) -> Gate:
+        gate = self._create_border_gate(self._rng.choice(("up", "down", "left", "right")))
+        while self.entry_gate is not None and (gate.tile_x, gate.tile_y) == (self.entry_gate.tile_x, self.entry_gate.tile_y):
+            gate = self._create_border_gate(self._rng.choice(("up", "down", "left", "right")))
+        return gate
 
     def _paint_border(self) -> None:
         for column in range(MAP_COLUMNS):
@@ -92,6 +101,8 @@ class World:
             self.tiles[row][0] = Terrain.TREE
             self.tiles[row][MAP_COLUMNS - 1] = Terrain.TREE
         self.tiles[self.gate.tile_y][self.gate.tile_x] = Terrain.GRASS
+        if self.entry_gate is not None:
+            self.tiles[self.entry_gate.tile_y][self.entry_gate.tile_x] = Terrain.GRASS
 
     def _paint_landmarks(self) -> None:
         for _ in range(6):
@@ -120,6 +131,10 @@ class World:
     def _create_pickups(self) -> tuple[PickupSpawn, ...]:
         reachable = self._reachable_tiles()
         reserved = {self.spawn_tile, self.gate.entry_tile}
+        if self.tower_tile is not None:
+            reserved.add(self.tower_tile)
+        if self.entry_gate is not None:
+            reserved.add(self.entry_gate.entry_tile)
         candidates = [tile for tile in reachable if tile not in reserved]
         positions = self._rng.sample(candidates, 10)
         kinds = (CollectibleKind.GEM,) * 5 + (CollectibleKind.FLOWER,) * 5
@@ -153,6 +168,12 @@ class World:
         return terrain in {Terrain.GRASS, Terrain.PATH} and not self.is_gate(tile_x, tile_y)
 
     def is_gate(self, tile_x: int, tile_y: int) -> bool:
+        gate_tiles = {(self.gate.tile_x, self.gate.tile_y)}
+        if self.entry_gate is not None:
+            gate_tiles.add((self.entry_gate.tile_x, self.entry_gate.tile_y))
+        return (tile_x, tile_y) in gate_tiles
+
+    def is_exit_gate(self, tile_x: int, tile_y: int) -> bool:
         return (tile_x, tile_y) == (self.gate.tile_x, self.gate.tile_y)
 
     def rect_is_walkable(
@@ -170,7 +191,7 @@ class World:
         start_y = int(top // TILE_SIZE)
         end_y = int((top + height - 0.001) // TILE_SIZE)
         return all(
-            self.is_walkable(tile_x, tile_y) or (gate_is_open and self.is_gate(tile_x, tile_y))
+            self.is_walkable(tile_x, tile_y) or (gate_is_open and self.is_exit_gate(tile_x, tile_y))
             for tile_y in range(start_y, end_y + 1)
             for tile_x in range(start_x, end_x + 1)
         )
