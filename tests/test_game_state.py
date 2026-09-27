@@ -75,6 +75,12 @@ def test_completion_opens_gate_and_entering_it_starts_a_new_level() -> None:
     state.x, state.y = state.world.gate.center
     state.update((0, 0), 0)
 
+    assert state.transition_pending
+    assert state.level == 1
+    assert state.world is previous_world
+
+    state.advance_level()
+
     assert state.level == 2
     assert state.world is not previous_world
     assert state.world.entry_gate is not None

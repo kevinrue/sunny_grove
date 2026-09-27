@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import cos, pi, sin
 from pathlib import Path
 from typing import Final
 
@@ -12,6 +13,7 @@ WINDOW_WIDTH: Final = 960
 WINDOW_HEIGHT: Final = 540
 HUD_HEIGHT: Final = 60
 BACKGROUND: Final = (29, 61, 72)
+CELEBRATION_DURATION: Final = 1.8
 ASSET_ROOT: Final = Path(__file__).resolve().parents[2] / "assets"
 
 
@@ -34,9 +36,11 @@ def run() -> None:
     pygame.display.set_caption("Sunny Grove")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 34)
+    celebration_font = pygame.font.Font(None, 76)
     assets = _load_images()
     pickup_sound, celebration_sound = _load_sounds()
     state = GameState(World())
+    celebration_elapsed: float | None = None
     running = True
 
     while running:
@@ -47,19 +51,29 @@ def run() -> None:
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
 
-        keys = pygame.key.get_pressed()
-        direction = (
-            int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]),
-            int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]),
-        )
-        gate_was_open = state.gate_open
-        collected = state.update(direction, delta_seconds)
-        if collected and pickup_sound is not None:
-            pickup_sound.play()
-        if not gate_was_open and state.gate_open and celebration_sound is not None:
-            celebration_sound.play()
+        if celebration_elapsed is None:
+            keys = pygame.key.get_pressed()
+            direction = (
+                int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]),
+                int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]),
+            )
+            gate_was_open = state.gate_open
+            collected = state.update(direction, delta_seconds)
+            if collected and pickup_sound is not None:
+                pickup_sound.play()
+            if not gate_was_open and state.gate_open and celebration_sound is not None:
+                celebration_sound.play()
+            if state.transition_pending:
+                celebration_elapsed = 0.0
+        else:
+            celebration_elapsed += delta_seconds
+            if celebration_elapsed >= CELEBRATION_DURATION:
+                state.advance_level()
+                celebration_elapsed = None
 
         _draw_scene(game_surface, state, assets, font)
+        if celebration_elapsed is not None:
+            _draw_celebration(game_surface, celebration_font, celebration_elapsed)
         _present_scene(screen, game_surface)
         pygame.display.flip()
 
@@ -189,6 +203,31 @@ def _draw_gate(screen: pygame.Surface, state: GameState, assets: Assets) -> None
 def _draw_princess(screen: pygame.Surface, assets: Assets, state: GameState) -> None:
     image = assets.princess[(state.facing, state.walk_frame)]
     screen.blit(image, image.get_rect(center=(int(state.x), int(state.y + HUD_HEIGHT))))
+
+
+def _draw_celebration(screen: pygame.Surface, font: pygame.font.Font, elapsed: float) -> None:
+    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+    overlay.fill((30, 47, 90, 128))
+    screen.blit(overlay, (0, 0))
+
+    for center_x, center_y, color, offset in (
+        (230, 190, (255, 104, 135), 0.0),
+        (480, 145, (255, 220, 88), 0.7),
+        (725, 215, (101, 225, 186), 1.4),
+    ):
+        radius = 22 + ((elapsed + offset) % 0.9) / 0.9 * 88
+        for ray in range(12):
+            angle = ray * pi / 6 + elapsed * 2
+            start = (center_x + cos(angle) * (radius - 16), center_y + sin(angle) * (radius - 16))
+            end = (center_x + cos(angle) * radius, center_y + sin(angle) * radius)
+            pygame.draw.line(screen, color, start, end, 5)
+        pygame.draw.circle(screen, (255, 248, 207), (center_x, center_y), 9)
+
+    message = font.render("Well done!", True, (255, 255, 255))
+    shadow = font.render("Well done!", True, (91, 57, 92))
+    center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+    screen.blit(shadow, shadow.get_rect(center=(center[0] + 3, center[1] + 4)))
+    screen.blit(message, message.get_rect(center=center))
 
 
 def _draw_hud(screen: pygame.Surface, state: GameState, assets: Assets, font: pygame.font.Font) -> None:

@@ -103,6 +103,7 @@ tests/
 ## Development and CI
 
 - Use Python 3.13.5, as pinned in `.python-version`.
+- Use the repository virtual-environment interpreter: `.venv/Scripts/python.exe` on Windows, or `.venv/bin/python` on macOS and Linux.
 - Install dependencies with `python -m pip install -r requirements.txt` in the active virtual environment.
 - Run tests with `python -m pytest` in the active virtual environment.
 - GitHub Actions repeats those install and test commands on `ubuntu-latest`, `windows-latest`, and `macos-latest`.

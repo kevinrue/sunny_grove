@@ -36,10 +36,14 @@ class GameState:
         self.gem_count = 0
         self.flower_count = 0
         self.gate_open = False
+        self.transition_pending = False
         self.active_pickups: dict[str, ActivePickup] = {}
         self._start_level()
 
     def update(self, direction: tuple[float, float], delta_seconds: float) -> list[CollectibleKind]:
+        if self.transition_pending:
+            return []
+
         direction_x, direction_y = direction
         length = hypot(direction_x, direction_y)
         if length:
@@ -56,7 +60,7 @@ class GameState:
 
         collected = self._collect_overlapping_pickups()
         if self.gate_open and self._is_at_gate():
-            self._advance_level()
+            self.transition_pending = True
         return collected
 
     def _update_facing(self, direction_x: float, direction_y: float) -> None:
@@ -105,7 +109,9 @@ class GameState:
     def _is_at_gate(self) -> bool:
         return self.world.is_gate(int(self.x // TILE_SIZE), int(self.y // TILE_SIZE))
 
-    def _advance_level(self) -> None:
+    def advance_level(self) -> None:
+        if not self.transition_pending:
+            return
         opposite_facing = {"up": "down", "down": "up", "left": "right", "right": "left"}
         self.level += 1
         self.world = World(self._rng, entry_facing=opposite_facing[self.world.gate.facing])
@@ -118,6 +124,7 @@ class GameState:
         self.gem_count = 0
         self.flower_count = 0
         self.gate_open = False
+        self.transition_pending = False
         self.active_pickups = {
             spawn.identifier: ActivePickup.from_spawn(spawn) for spawn in self.world.pickup_spawns
         }
