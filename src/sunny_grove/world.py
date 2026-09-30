@@ -68,23 +68,18 @@ class World:
         self,
         rng: Random | None = None,
         entry_facing: str | None = None,
-        return_home: bool = False,
     ) -> None:
         self._rng = rng or Random()
-        self.return_home = return_home
         self.entry_gate = self._create_border_gate(entry_facing) if entry_facing else None
         self.spawn_tile = self.entry_gate.entry_tile if self.entry_gate else (14, 9)
-        self.gate = None if return_home else self._create_gate()
-        self.tower_tile = self._create_tower_tile() if self.entry_gate is None else None
-        self.castle_tile: tuple[int, int] | None = None
+        self.gate = self._create_gate()
+        self.tower_tile = None
         self.tiles = [[Terrain.GRASS for _ in range(MAP_COLUMNS)] for _ in range(MAP_ROWS)]
         self._paint_border()
         self._paint_landmarks()
-        if self.return_home:
-            self.castle_tile = self._create_castle_tile()
-            self._paint_path_to(self.castle_tile)
-        else:
-            self._paint_path_to(self.gate.entry_tile)
+        self.castle_tile = self._create_castle_tile()
+        self._paint_path_to(self.gate.entry_tile)
+        self._paint_path_to(self.castle_tile)
         self.pickup_spawns = self._create_pickups()
 
     def _create_border_gate(self, facing: str) -> Gate:
@@ -114,16 +109,6 @@ class World:
         ]
         return self._rng.choice(candidates)
 
-    def _create_tower_tile(self) -> tuple[int, int]:
-        spawn_x, spawn_y = self.spawn_tile
-        assert self.gate is not None
-        entry_x, entry_y = self.gate.entry_tile
-        if entry_x != spawn_x:
-            direction_x = 1 if entry_x > spawn_x else -1
-            return spawn_x - direction_x, spawn_y
-        direction_y = 1 if entry_y > spawn_y else -1
-        return spawn_x, spawn_y - direction_y
-
     def _paint_border(self) -> None:
         for column in range(MAP_COLUMNS):
             self.tiles[0][column] = Terrain.TREE
@@ -131,8 +116,7 @@ class World:
         for row in range(MAP_ROWS):
             self.tiles[row][0] = Terrain.TREE
             self.tiles[row][MAP_COLUMNS - 1] = Terrain.TREE
-        if self.gate is not None:
-            self.tiles[self.gate.tile_y][self.gate.tile_x] = Terrain.GRASS
+        self.tiles[self.gate.tile_y][self.gate.tile_x] = Terrain.GRASS
         if self.entry_gate is not None:
             self.tiles[self.entry_gate.tile_y][self.entry_gate.tile_x] = Terrain.GRASS
 
@@ -160,13 +144,36 @@ class World:
             tile_y += 1 if destination_y > tile_y else -1
         self.tiles[destination_y][destination_x] = Terrain.PATH
 
+    @property
+    def castle_entry_tile(self) -> tuple[int, int]:
+        castle_x, castle_y = self.castle_tile
+        for tile_x, tile_y in (
+            (castle_x, castle_y + 1),
+            (castle_x, castle_y - 1),
+            (castle_x + 1, castle_y),
+            (castle_x - 1, castle_y),
+        ):
+            if self.terrain_at(tile_x, tile_y) is Terrain.PATH:
+                return tile_x, tile_y
+        raise RuntimeError("Castle must have an adjacent path tile")
+
+    @property
+    def castle_entry_facing(self) -> str:
+        entry_x, entry_y = self.castle_entry_tile
+        castle_x, castle_y = self.castle_tile
+        directions = {
+            (0, -1): "up",
+            (0, 1): "down",
+            (-1, 0): "left",
+            (1, 0): "right",
+        }
+        return directions[(castle_x - entry_x, castle_y - entry_y)]
+
     def _create_pickups(self) -> tuple[PickupSpawn, ...]:
         reachable = self._reachable_tiles()
         reserved = {self.spawn_tile}
-        if self.gate is not None:
-            reserved.add(self.gate.entry_tile)
-        if self.castle_tile is not None:
-            reserved.add(self.castle_tile)
+        reserved.add(self.gate.entry_tile)
+        reserved.add(self.castle_tile)
         if self.tower_tile is not None:
             reserved.add(self.tower_tile)
         if self.entry_gate is not None:
@@ -208,15 +215,13 @@ class World:
         )
 
     def is_gate(self, tile_x: int, tile_y: int) -> bool:
-        gate_tiles = set()
-        if self.gate is not None:
-            gate_tiles.add((self.gate.tile_x, self.gate.tile_y))
+        gate_tiles = {(self.gate.tile_x, self.gate.tile_y)}
         if self.entry_gate is not None:
             gate_tiles.add((self.entry_gate.tile_x, self.entry_gate.tile_y))
         return (tile_x, tile_y) in gate_tiles
 
     def is_exit_gate(self, tile_x: int, tile_y: int) -> bool:
-        return self.gate is not None and (tile_x, tile_y) == (self.gate.tile_x, self.gate.tile_y)
+        return (tile_x, tile_y) == (self.gate.tile_x, self.gate.tile_y)
 
     def rect_is_walkable(
         self,

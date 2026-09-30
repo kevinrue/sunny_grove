@@ -68,7 +68,7 @@ class GameState:
         collected = self._collect_overlapping_pickups()
         if self.gate_open and self._is_at_destination():
             self.transition_pending = True
-            self.finale_pending = self.world.return_home
+            self.finale_pending = self._is_at_castle()
         return collected
 
     def _update_facing(self, direction_x: float, direction_y: float) -> None:
@@ -139,20 +139,19 @@ class GameState:
 
     def _is_at_destination(self) -> bool:
         tile = (int(self.x // TILE_SIZE), int(self.y // TILE_SIZE))
-        if self.world.return_home:
-            return tile == self.world.castle_tile
-        return self.world.is_gate(*tile)
+        return tile == self.world.castle_tile or self.world.is_gate(*tile)
+
+    def _is_at_castle(self) -> bool:
+        return (int(self.x // TILE_SIZE), int(self.y // TILE_SIZE)) == self.world.castle_tile
 
     def advance_level(self) -> None:
         if not self.transition_pending or self.finale_pending:
             return
         opposite_facing = {"up": "down", "down": "up", "left": "right", "right": "left"}
         self.level += 1
-        assert self.world.gate is not None
         self.world = World(
             self._rng,
             entry_facing=opposite_facing[self.world.gate.facing],
-            return_home=self.level == 3,
         )
         self._start_level()
 

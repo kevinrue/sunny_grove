@@ -254,11 +254,14 @@ def _draw_home_castle(screen: pygame.Surface, state: GameState, assets: Assets) 
         return
     tile_x, tile_y = state.world.castle_tile
     center = (tile_x * TILE_SIZE + TILE_SIZE // 2, tile_y * TILE_SIZE + TILE_SIZE // 2 + HUD_HEIGHT)
-    if state.gate_open:
-        pulse = int(pygame.time.get_ticks() / 170) % 3
-        for radius in (25 + pulse * 5, 31 + pulse * 5):
-            pygame.draw.circle(screen, (255, 223, 89), center, radius, 3)
     screen.blit(assets.tower, assets.tower.get_rect(center=center))
+    if state.gate_open:
+        _draw_destination_arrow(
+            screen,
+            assets,
+            state.world.castle_entry_tile,
+            state.world.castle_entry_facing,
+        )
 
 
 def _draw_gate(screen: pygame.Surface, state: GameState, assets: Assets) -> None:
@@ -272,14 +275,21 @@ def _draw_gate(screen: pygame.Surface, state: GameState, assets: Assets) -> None
         entry_gate = state.world.entry_gate
         entry_center = (int(entry_gate.center[0]), int(entry_gate.center[1] + HUD_HEIGHT))
         screen.blit(assets.gate_closed, assets.gate_closed.get_rect(center=entry_center))
-    if not state.gate_open:
-        return
+    if state.gate_open:
+        _draw_destination_arrow(screen, assets, gate.entry_tile, gate.facing)
 
+
+def _draw_destination_arrow(
+    screen: pygame.Surface,
+    assets: Assets,
+    tile: tuple[int, int],
+    facing: str,
+) -> None:
     rotations = {"up": 0, "right": -90, "down": 180, "left": 90}
-    arrow = pygame.transform.rotate(assets.exit_arrow, rotations[gate.facing])
-    entry_x, entry_y = gate.entry_tile
-    entry_center = (entry_x * TILE_SIZE + TILE_SIZE // 2, entry_y * TILE_SIZE + TILE_SIZE // 2 + HUD_HEIGHT)
-    screen.blit(arrow, arrow.get_rect(center=entry_center))
+    arrow = pygame.transform.rotate(assets.exit_arrow, rotations[facing])
+    tile_x, tile_y = tile
+    center = (tile_x * TILE_SIZE + TILE_SIZE // 2, tile_y * TILE_SIZE + TILE_SIZE // 2 + HUD_HEIGHT)
+    screen.blit(arrow, arrow.get_rect(center=center))
 
 
 def _draw_princess(screen: pygame.Surface, assets: Assets, state: GameState) -> None:

@@ -125,14 +125,8 @@ def test_completion_opens_gate_and_entering_it_starts_a_new_level() -> None:
     assert len(state.active_pickups) == 10
 
 
-def test_third_level_returns_to_castle_after_collecting_everything() -> None:
+def test_completed_level_can_return_to_castle_after_collecting_everything() -> None:
     state = GameState(World(Random(12)), rng=Random(13))
-    for _ in range(2):
-        state.transition_pending = True
-        state.advance_level()
-
-    assert state.level == 3
-    assert state.world.return_home
     assert state.world.castle_tile is not None
 
     for pickup in tuple(state.active_pickups.values()):
@@ -148,4 +142,4 @@ def test_third_level_returns_to_castle_after_collecting_everything() -> None:
     assert state.transition_pending
     assert state.finale_pending
     state.advance_level()
-    assert state.level == 3
+    assert state.level == 1
