@@ -282,13 +282,24 @@ def _draw_tiara(
     diamond_count: int,
 ) -> None:
     center_x, center_y = center
-    points = ((-36, 14), (-31, -4), (-18, 5), (-9, -15), (0, 4), (9, -20), (18, 5), (31, -4), (36, 14))
+    points = (
+        (-36, 14), (-31, 0), (-25, -8), (-19, 4), (-17, 7),
+        (-12, -16), (-6, 8), (0, -21), (6, 8), (12, -16),
+        (17, 7), (19, 4), (25, -8), (31, 0), (36, 14),
+    )
     scaled_points = [_scaled_point(center_x, center_y, scale, x, y) for x, y in points]
     pygame.draw.polygon(screen, (205, 143, 45), scaled_points)
     pygame.draw.polygon(
         screen,
         (255, 217, 91),
-        [_scaled_point(center_x, center_y, scale, x, y) for x, y in ((-31, 12), (-27, 2), (-18, 9), (-9, -10), (0, 8), (9, -15), (18, 9), (27, 2), (31, 12))],
+        [
+            _scaled_point(center_x, center_y, scale, x, y)
+            for x, y in (
+                (-31, 12), (-28, 2), (-25, -3), (-21, 7), (-17, 10),
+                (-12, -11), (-7, 11), (0, -16), (7, 11), (12, -11),
+                (17, 10), (21, 7), (25, -3), (28, 2), (31, 12),
+            )
+        ],
     )
     pygame.draw.line(
         screen,
