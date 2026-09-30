@@ -15,6 +15,7 @@ HUD_HEIGHT: Final = 60
 BACKGROUND: Final = (29, 61, 72)
 CELEBRATION_DURATION: Final = 1.8
 COLLECTION_COMPLETION_DURATION: Final = 5.0
+FINAL_ANIMATION_DURATION: Final = 5.0
 COLLECTIBLE_TARGET: Final = 5
 ASSET_ROOT: Final = Path(__file__).resolve().parents[2] / "assets"
 
@@ -46,6 +47,9 @@ def run() -> None:
     collection_completion_kind: CollectibleKind | None = None
     collection_completion_elapsed = 0.0
     collection_completion_queue: list[CollectibleKind] = []
+    finale_elapsed: float | None = None
+    final_menu = False
+    play_again_selected = True
     running = True
 
     while running:
@@ -56,7 +60,25 @@ def run() -> None:
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
 
-        if celebration_elapsed is None and collection_completion_kind is None:
+            if final_menu and event.type == pygame.KEYDOWN:
+                if event.key in {pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN}:
+                    play_again_selected = not play_again_selected
+                elif event.key in {pygame.K_RETURN, pygame.K_SPACE}:
+                    if play_again_selected:
+                        state.restart()
+                        final_menu = False
+                        play_again_selected = True
+                    else:
+                        running = False
+
+        if finale_elapsed is not None:
+            finale_elapsed += delta_seconds
+            if finale_elapsed >= FINAL_ANIMATION_DURATION:
+                finale_elapsed = None
+                final_menu = True
+        elif final_menu:
+            pass
+        elif celebration_elapsed is None and collection_completion_kind is None:
             keys = pygame.key.get_pressed()
             direction = (
                 int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]),
@@ -80,7 +102,9 @@ def run() -> None:
                 )
                 if counts_before_update[kind] < COLLECTIBLE_TARGET <= count
             )
-            if collection_completion_queue:
+            if state.finale_pending:
+                finale_elapsed = 0.0
+            elif collection_completion_queue:
                 collection_completion_kind = collection_completion_queue.pop(0)
                 collection_completion_elapsed = 0.0
             elif state.transition_pending:
@@ -108,6 +132,15 @@ def run() -> None:
             )
         elif celebration_elapsed is not None:
             _draw_celebration(game_surface, celebration_font, celebration_elapsed)
+        if finale_elapsed is not None or final_menu:
+            _draw_finale(
+                game_surface,
+                celebration_font,
+                assets,
+                finale_elapsed if finale_elapsed is not None else FINAL_ANIMATION_DURATION,
+                final_menu,
+                play_again_selected,
+            )
         _present_scene(screen, game_surface)
         pygame.display.flip()
 
@@ -181,6 +214,7 @@ def _draw_scene(
     screen.fill(BACKGROUND)
     _draw_world(screen, state.world, assets)
     _draw_tower(screen, state.world, assets)
+    _draw_home_castle(screen, state, assets)
     _draw_gate(screen, state, assets)
     for pickup in state.active_pickups.values():
         _draw_pickup(screen, assets, pickup.kind, int(pickup.x), int(pickup.y + HUD_HEIGHT))
@@ -215,8 +249,22 @@ def _draw_tower(screen: pygame.Surface, world: World, assets: Assets) -> None:
     screen.blit(assets.tower, assets.tower.get_rect(center=center))
 
 
+def _draw_home_castle(screen: pygame.Surface, state: GameState, assets: Assets) -> None:
+    if state.world.castle_tile is None:
+        return
+    tile_x, tile_y = state.world.castle_tile
+    center = (tile_x * TILE_SIZE + TILE_SIZE // 2, tile_y * TILE_SIZE + TILE_SIZE // 2 + HUD_HEIGHT)
+    if state.gate_open:
+        pulse = int(pygame.time.get_ticks() / 170) % 3
+        for radius in (25 + pulse * 5, 31 + pulse * 5):
+            pygame.draw.circle(screen, (255, 223, 89), center, radius, 3)
+    screen.blit(assets.tower, assets.tower.get_rect(center=center))
+
+
 def _draw_gate(screen: pygame.Surface, state: GameState, assets: Assets) -> None:
     gate = state.world.gate
+    if gate is None:
+        return
     gate_image = assets.gate_open if state.gate_open else assets.gate_closed
     gate_center = (int(gate.center[0]), int(gate.center[1] + HUD_HEIGHT))
     screen.blit(gate_image, gate_image.get_rect(center=gate_center))
@@ -262,6 +310,60 @@ def _draw_celebration(screen: pygame.Surface, font: pygame.font.Font, elapsed: f
     center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
     screen.blit(shadow, shadow.get_rect(center=(center[0] + 3, center[1] + 4)))
     screen.blit(message, message.get_rect(center=center))
+
+
+def _draw_finale(
+    screen: pygame.Surface,
+    font: pygame.font.Font,
+    assets: Assets,
+    elapsed: float,
+    show_menu: bool,
+    play_again_selected: bool,
+) -> None:
+    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+    overlay.fill((37, 48, 92, 210))
+    screen.blit(overlay, (0, 0))
+
+    princess_center = (342, 250)
+    pulse = 1.0 + sin(elapsed * pi * 2.2) * 0.05
+    for ray in range(16):
+        angle = ray * pi / 8 + elapsed * 1.5
+        start = (princess_center[0] + cos(angle) * 84 * pulse, princess_center[1] + sin(angle) * 84 * pulse)
+        end = (princess_center[0] + cos(angle) * 108 * pulse, princess_center[1] + sin(angle) * 108 * pulse)
+        pygame.draw.line(screen, (255, 224, 104), start, end, 4)
+    princess = pygame.transform.scale(assets.princess[("down", 0)], (128, 128))
+    screen.blit(princess, princess.get_rect(center=princess_center))
+    _draw_tiara(screen, (princess_center[0], princess_center[1] - 48), 1.25, COLLECTIBLE_TARGET)
+
+    table = pygame.Rect(514, 290, 190, 16)
+    pygame.draw.rect(screen, (137, 80, 49), table)
+    pygame.draw.rect(screen, (219, 146, 76), table.inflate(-8, -6))
+    pygame.draw.rect(screen, (102, 61, 46), (530, 306, 14, 68))
+    pygame.draw.rect(screen, (102, 61, 46), (674, 306, 14, 68))
+    _draw_bouquet(screen, (609, 270), 2.1, COLLECTIBLE_TARGET)
+
+    message = "Thank you and good bye!"
+    text = font.render(message, True, (255, 255, 255))
+    shadow = font.render(message, True, (91, 57, 92))
+    text_center = (WINDOW_WIDTH // 2, 427)
+    screen.blit(shadow, shadow.get_rect(center=(text_center[0] + 3, text_center[1] + 4)))
+    screen.blit(text, text.get_rect(center=text_center))
+
+    if not show_menu:
+        return
+    _draw_final_menu(screen, font, play_again_selected)
+
+
+def _draw_final_menu(screen: pygame.Surface, font: pygame.font.Font, play_again_selected: bool) -> None:
+    options = (("Play again", True), ("Exit", False))
+    for index, (label, is_play_again) in enumerate(options):
+        center_x = 370 + index * 220
+        selected = is_play_again == play_again_selected
+        color = (255, 225, 100) if selected else (255, 239, 193)
+        pygame.draw.rect(screen, color, (center_x - 88, 462, 176, 48), border_radius=6)
+        pygame.draw.rect(screen, (109, 68, 78), (center_x - 88, 462, 176, 48), 3, border_radius=6)
+        label_surface = font.render(label, True, (55, 47, 76))
+        screen.blit(label_surface, label_surface.get_rect(center=(center_x, 486)))
 
 
 def _draw_hud(screen: pygame.Surface, state: GameState, assets: Assets, font: pygame.font.Font) -> None:

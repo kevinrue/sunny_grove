@@ -1,6 +1,6 @@
 # Sunny Grove
 
-A calm, full-screen, arrow-key exploration game for young children. Guide an original princess around a pixel-art meadow to collect gems and flowers while practicing counting. The first meadow begins beside a cheerful tower. Each new level generates fresh terrain and item positions; collect everything, follow the colorful exit arrow through the opened wooden gate, and arrive through a closed gate on the opposite border of the next map.
+A calm, full-screen, arrow-key exploration game for young children. Guide an original princess around pixel-art meadows to collect gems and flowers while practicing counting. The first meadow begins beside a cheerful castle. The first two levels lead through an opened wooden gate; on the third, collect everything and follow the glowing circle back to the castle for a final celebration, then choose to play again or exit.
 
 Sunny Grove uses Python 3.13.5 and is tested on Windows, Ubuntu, and macOS.
 
@@ -55,4 +55,4 @@ On Ubuntu and macOS:
 .venv/bin/python -m pytest
 ```
 
-Use the arrow keys to move. Escape or close the window to quit.
+Use the arrow keys to move. At the final menu, use an arrow key to select Play again or Exit, then press Enter or Space. Escape or close the window quits.

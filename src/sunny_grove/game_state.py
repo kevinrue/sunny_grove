@@ -38,6 +38,7 @@ class GameState:
         self.gate_open = False
         self._move_target: tuple[float, float] | None = None
         self.transition_pending = False
+        self.finale_pending = False
         self.active_pickups: dict[str, ActivePickup] = {}
         self._start_level()
 
@@ -65,8 +66,9 @@ class GameState:
             self.walk_frame = 0
 
         collected = self._collect_overlapping_pickups()
-        if self.gate_open and self._is_at_gate():
+        if self.gate_open and self._is_at_destination():
             self.transition_pending = True
+            self.finale_pending = self.world.return_home
         return collected
 
     def _update_facing(self, direction_x: float, direction_y: float) -> None:
@@ -135,15 +137,28 @@ class GameState:
             self.gate_open = True
         return collected
 
-    def _is_at_gate(self) -> bool:
-        return self.world.is_gate(int(self.x // TILE_SIZE), int(self.y // TILE_SIZE))
+    def _is_at_destination(self) -> bool:
+        tile = (int(self.x // TILE_SIZE), int(self.y // TILE_SIZE))
+        if self.world.return_home:
+            return tile == self.world.castle_tile
+        return self.world.is_gate(*tile)
 
     def advance_level(self) -> None:
-        if not self.transition_pending:
+        if not self.transition_pending or self.finale_pending:
             return
         opposite_facing = {"up": "down", "down": "up", "left": "right", "right": "left"}
         self.level += 1
-        self.world = World(self._rng, entry_facing=opposite_facing[self.world.gate.facing])
+        assert self.world.gate is not None
+        self.world = World(
+            self._rng,
+            entry_facing=opposite_facing[self.world.gate.facing],
+            return_home=self.level == 3,
+        )
+        self._start_level()
+
+    def restart(self) -> None:
+        self.level = 1
+        self.world = World(self._rng)
         self._start_level()
 
     def _start_level(self) -> None:
@@ -155,6 +170,7 @@ class GameState:
         self.gate_open = False
         self._move_target = None
         self.transition_pending = False
+        self.finale_pending = False
         self.active_pickups = {
             spawn.identifier: ActivePickup.from_spawn(spawn) for spawn in self.world.pickup_spawns
         }

@@ -79,3 +79,12 @@ def test_entering_world_has_a_permanently_closed_entry_gate() -> None:
         TILE_SIZE,
         gate_is_open=True,
     )
+
+
+def test_return_home_world_has_a_reachable_walkable_castle() -> None:
+    world = World(Random(11), entry_facing="right", return_home=True)
+
+    assert world.gate is None
+    assert world.castle_tile is not None
+    assert world.is_walkable(*world.castle_tile)
+    assert world.castle_tile not in {(pickup.tile_x, pickup.tile_y) for pickup in world.pickup_spawns}

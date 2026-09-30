@@ -13,9 +13,9 @@ The game should feel like a gentle toy, not a challenge: no failure state, no ti
 3. Holding an arrow key moves smoothly between tile centers; movement is cardinal only, with horizontal input taking precedence when two arrows are held.
 4. Trees, mountains, water, and map edges block movement.
 5. Walking onto a gem or flower collects it automatically, plays a gentle chime when sound is available, and visibly grows its matching tiara or bouquet counter.
-6. Collecting every item opens the wooden border gate and displays an arrow pointing to it. Walking through the open gate starts a fresh generated map and resets counters.
+6. Collecting every item on the first two levels opens the wooden border gate and displays an arrow pointing to it. Walking through the open gate starts a fresh generated map and resets counters. On the third level, collecting every item circles a randomly placed castle; entering its tile starts the final celebration.
 7. Completing all five gems or all five flowers displays a five-second central celebration of the completed tiara or bouquet.
-8. Escape and window close may quit. No other control is needed during play.
+8. The final celebration shows the princess wearing her tiara beside her bouquet on a table, says "Thank you and good bye!", then offers Play again and Exit. Escape and window close may quit.
 
 ## Design Principles
 
@@ -27,7 +27,7 @@ The game should feel like a gentle toy, not a challenge: no failure state, no ti
 
 ## World
 
-Build one generated, one-screen top-down outdoor map with a central grassy clearing, optional dirt paths, tree clusters, mountain barriers, water, several open collectible pockets, and one border gate. Every pickup must be reachable without a precision puzzle. Spawn the princess near one visible pickup for immediate feedback.
+Build generated, one-screen top-down outdoor maps with a central grassy clearing, optional dirt paths, tree clusters, mountain barriers, water, several open collectible pockets, and one border gate on the first two levels. The third map has a randomly placed return castle instead of an exit gate. Every pickup and the castle must be reachable without a precision puzzle. Spawn the princess near one visible pickup for immediate feedback.
 
 | Terrain | Walkable |
 | --- | --- |
@@ -127,8 +127,8 @@ tests/
 - Blocking by each solid terrain type, the initial tower, map edges, and single-tile corner obstacles.
 - Gem collection increments only the gem counter; flower collection increments only the flower counter.
 - Duplicate pickup processing cannot increment a counter twice.
-- Gate opens only after all pickups are collected.
-- Entering the open gate creates a new level with typed pickups and reset counters.
+- Gates open only after all pickups are collected on the first two levels.
+- Entering an open gate creates the next level with typed pickups and reset counters; the third level uses a reachable castle and entering it after collection starts the finale.
 
 ## Acceptance Checklist
 
@@ -137,7 +137,7 @@ tests/
 3. The rendered scene includes the princess, terrain, gems, flowers, and two readable counters.
 4. Arrow keys move smoothly between tile centers without diagonal movement or crossing solid terrain, the tower, or map bounds.
 5. Each collectible updates only its matching counter.
-6. A completed level opens its gate; exiting through it creates a new map, restores items, resets counters, and keeps movement responsive.
+6. Completed first and second levels open their gates; exiting through them creates a new map, restores items, resets counters, and keeps movement responsive. The third level circles its return castle and reaches the final replay-or-exit screen when the princess enters it.
 7. The game remains playable with unavailable audio.
 
 ## Out of Scope

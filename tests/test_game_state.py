@@ -123,3 +123,29 @@ def test_completion_opens_gate_and_entering_it_starts_a_new_level() -> None:
     assert state.gem_count == 0
     assert state.flower_count == 0
     assert len(state.active_pickups) == 10
+
+
+def test_third_level_returns_to_castle_after_collecting_everything() -> None:
+    state = GameState(World(Random(12)), rng=Random(13))
+    for _ in range(2):
+        state.transition_pending = True
+        state.advance_level()
+
+    assert state.level == 3
+    assert state.world.return_home
+    assert state.world.castle_tile is not None
+
+    for pickup in tuple(state.active_pickups.values()):
+        state.x, state.y = pickup.x, pickup.y
+        state.update((0, 0), 0)
+
+    assert state.gate_open
+    castle_x, castle_y = state.world.castle_tile
+    state.x = castle_x * TILE_SIZE + TILE_SIZE / 2
+    state.y = castle_y * TILE_SIZE + TILE_SIZE / 2
+    state.update((0, 0), 0)
+
+    assert state.transition_pending
+    assert state.finale_pending
+    state.advance_level()
+    assert state.level == 3
