@@ -1,4 +1,3 @@
-from math import hypot, isclose
 from random import Random
 
 import pytest
@@ -7,18 +6,34 @@ from sunny_grove.game_state import GameState
 from sunny_grove.world import CollectibleKind, TILE_SIZE, Terrain, World
 
 
-def test_diagonal_and_straight_movement_cover_equal_distance() -> None:
-    straight = GameState(World(Random(1)))
-    diagonal = GameState(World(Random(1)))
-    start_straight = (straight.x, straight.y)
-    start_diagonal = (diagonal.x, diagonal.y)
+def test_diagonal_input_moves_along_one_axis() -> None:
+    world = World(Random(1))
+    world.tiles[8][10] = Terrain.PATH
+    world.tiles[8][11] = Terrain.PATH
+    world.tiles[9][10] = Terrain.PATH
+    state = GameState(world)
+    state.x, state.y = (10 * TILE_SIZE + TILE_SIZE / 2, 8 * TILE_SIZE + TILE_SIZE / 2)
 
-    straight.update((1, 0), 0.1)
-    diagonal.update((1, 1), 0.1)
+    state.update((1, 1), 1.0)
 
-    straight_distance = hypot(straight.x - start_straight[0], straight.y - start_straight[1])
-    diagonal_distance = hypot(diagonal.x - start_diagonal[0], diagonal.y - start_diagonal[1])
-    assert isclose(straight_distance, diagonal_distance, rel_tol=1e-9)
+    assert (state.x, state.y) == (11 * TILE_SIZE + TILE_SIZE / 2, 8 * TILE_SIZE + TILE_SIZE / 2)
+
+
+def test_released_movement_finishes_at_the_next_tile_center() -> None:
+    world = World(Random(7))
+    spawn_x, spawn_y = world.spawn_tile
+    direction_x = -1 if (spawn_x + 1, spawn_y) == world.tower_tile else 1
+    world.tiles[spawn_y][spawn_x] = Terrain.PATH
+    world.tiles[spawn_y][spawn_x + direction_x] = Terrain.PATH
+    state = GameState(world)
+    start_x, start_y = state.x, state.y
+
+    state.update((direction_x, 0), 0.04)
+
+    assert min(start_x, start_x + direction_x * TILE_SIZE) < state.x < max(start_x, start_x + direction_x * TILE_SIZE)
+    state.update((0, 0), 1.0)
+
+    assert (state.x, state.y) == (start_x + direction_x * TILE_SIZE, start_y)
 
 
 def test_pickups_increment_only_their_matching_counter() -> None:
@@ -50,6 +65,20 @@ def test_solid_terrain_blocks_the_princess(terrain: Terrain) -> None:
     state.update((1, 0), 0.2)
 
     assert (state.x, state.y) == (10 * TILE_SIZE + TILE_SIZE / 2, 8 * TILE_SIZE + TILE_SIZE / 2)
+
+
+def test_diagonal_movement_cannot_cut_through_a_single_blocked_tile() -> None:
+    world = World(Random(8))
+    world.tiles[8][10] = Terrain.PATH
+    world.tiles[8][11] = Terrain.PATH
+    world.tiles[9][10] = Terrain.TREE
+    world.tiles[9][11] = Terrain.PATH
+    state = GameState(world)
+    state.x, state.y = (10 * TILE_SIZE + TILE_SIZE / 2, 8 * TILE_SIZE + TILE_SIZE / 2)
+
+    state.update((1, 1), 1.0)
+
+    assert (state.x, state.y) == (11 * TILE_SIZE + TILE_SIZE / 2, 8 * TILE_SIZE + TILE_SIZE / 2)
 
 
 def test_map_edge_blocks_the_princess() -> None:

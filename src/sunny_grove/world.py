@@ -174,7 +174,11 @@ class World:
 
     def is_walkable(self, tile_x: int, tile_y: int) -> bool:
         terrain = self.terrain_at(tile_x, tile_y)
-        return terrain in {Terrain.GRASS, Terrain.PATH} and not self.is_gate(tile_x, tile_y)
+        return (
+            terrain in {Terrain.GRASS, Terrain.PATH}
+            and not self.is_gate(tile_x, tile_y)
+            and (tile_x, tile_y) != self.tower_tile
+        )
 
     def is_gate(self, tile_x: int, tile_y: int) -> bool:
         gate_tiles = {(self.gate.tile_x, self.gate.tile_y)}

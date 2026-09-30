@@ -55,8 +55,14 @@ def test_first_world_has_a_tower_by_its_spawn() -> None:
         direction = (0, 1 if entry_y > spawn_y else -1)
 
     assert world.tower_tile == (spawn_x - direction[0], spawn_y - direction[1])
-    assert world.is_walkable(*world.tower_tile)
+    assert not world.is_walkable(*world.tower_tile)
     assert world.terrain_at(*world.tower_tile) is Terrain.GRASS
+    assert not world.rect_is_walkable(
+        world.tower_tile[0] * TILE_SIZE,
+        world.tower_tile[1] * TILE_SIZE,
+        TILE_SIZE,
+        TILE_SIZE,
+    )
 
 
 def test_entering_world_has_a_permanently_closed_entry_gate() -> None:

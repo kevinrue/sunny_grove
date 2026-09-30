@@ -10,11 +10,12 @@ The game should feel like a gentle toy, not a challenge: no failure state, no ti
 
 1. `python main.py` opens a full-screen game on Windows, Ubuntu, and macOS.
 2. The princess explores a bright grassland with randomly generated paths, trees, mountains, water, gems, flowers, and a border gate.
-3. Holding arrow keys moves smoothly; diagonal movement has the same overall speed as straight movement.
+3. Holding an arrow key moves smoothly between tile centers; movement is cardinal only, with horizontal input taking precedence when two arrows are held.
 4. Trees, mountains, water, and map edges block movement.
-5. Walking onto a gem or flower collects it automatically, plays a gentle chime when sound is available, and increments its matching counter.
+5. Walking onto a gem or flower collects it automatically, plays a gentle chime when sound is available, and visibly grows its matching tiara or bouquet counter.
 6. Collecting every item opens the wooden border gate and displays an arrow pointing to it. Walking through the open gate starts a fresh generated map and resets counters.
-7. Escape and window close may quit. No other control is needed during play.
+7. Completing all five gems or all five flowers displays a five-second central celebration of the completed tiara or bouquet.
+8. Escape and window close may quit. No other control is needed during play.
 
 ## Design Principles
 
@@ -48,15 +49,17 @@ There are two explicit collectible types: `GEM` and `FLOWER`.
 - Start each level with a small, countable number of each type, initially five gems and five flowers.
 - Space collectibles generously on walkable terrain.
 - Use forgiving overlap detection and allow each item to be collected only once per round.
-- Render a compact, high-contrast top HUD with a gem icon and large gem number plus a flower icon and large flower number.
+- Render a compact, high-contrast top HUD with a five-socket tiara that fills with collected gems, a bouquet that grows with collected flowers, and matching `n/5` counters.
+- When either collection reaches five, show its completed composition in a central animated overlay for about five seconds.
 - Update only the matching counter when collected. Both counters start at zero and reset on the next level.
 
 ## Movement
 
 - Arrow keys are the sole play control.
 - Sample held keys every frame and use delta-time-based continuous movement.
-- Normalize diagonal vectors.
-- Resolve each movement axis independently so the princess slides gently along obstacles.
+- Move one tile at a time, interpolating smoothly to the next tile center even when the arrow key is released mid-step.
+- Do not allow diagonal movement; when horizontal and vertical arrows are held together, use the horizontal direction.
+- Check each cardinal target independently so solid tiles, including the initial tower, cannot be crossed or cut through diagonally.
 - Track four-direction facing and render a subtle walk animation while moving.
 
 ## Art and Sound
@@ -120,8 +123,8 @@ tests/
 ## Required Tests
 
 - Generated terrain walkability, bounds, valid typed spawns, and gate placement.
-- Equal straight and diagonal distance for equal delta time.
-- Blocking by each solid terrain type and map edges.
+- Cardinal-only handling of simultaneous arrow input and tile-center stopping after input is released.
+- Blocking by each solid terrain type, the initial tower, map edges, and single-tile corner obstacles.
 - Gem collection increments only the gem counter; flower collection increments only the flower counter.
 - Duplicate pickup processing cannot increment a counter twice.
 - Gate opens only after all pickups are collected.
@@ -132,7 +135,7 @@ tests/
 1. Install with `python -m pip install -r requirements.txt`; `python -m pytest` succeeds.
 2. `python main.py` opens the full-screen game from the repository root on Windows, Ubuntu, and macOS.
 3. The rendered scene includes the princess, terrain, gems, flowers, and two readable counters.
-4. Arrow keys and diagonals move smoothly without crossing solid terrain or map bounds.
+4. Arrow keys move smoothly between tile centers without diagonal movement or crossing solid terrain, the tower, or map bounds.
 5. Each collectible updates only its matching counter.
 6. A completed level opens its gate; exiting through it creates a new map, restores items, resets counters, and keeps movement responsive.
 7. The game remains playable with unavailable audio.
