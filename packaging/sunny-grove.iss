@@ -1,6 +1,6 @@
 #define AppName "Sunny Grove"
 #define AppPublisher "Sunny Grove"
-#define AppVersion GetStringParam("AppVersion", "1.0.0")
+#define AppVersion GetStringParam("AppVersion", "1.0.0-rc.1")
 #define AppExeName "Sunny Grove.exe"
 
 [Setup]
