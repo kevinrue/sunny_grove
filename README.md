@@ -35,10 +35,11 @@ python3 -m venv .venv
 
 ## Run on macOS
 
-Create the virtual environment and install the project dependencies:
+Install the Python 3.13 series with Homebrew, create the virtual environment, and install the project dependencies:
 
 ```bash
-python3 -m venv .venv
+brew install python@3.13
+python3.13 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python main.py
 ```
