@@ -1,3 +1,20 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sunny-grove"
+version = "1.0.0"
+description = "A calm, full-screen exploration game for young children."
+requires-python = ">=3.13.5"
+dependencies = ["pygame>=2.6,<3"]
+
+[project.scripts]
+sunny-grove = "sunny_grove.app:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]

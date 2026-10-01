@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from math import cos, pi, sin
 from pathlib import Path
+import sys
 from typing import Final
 
 import pygame
@@ -17,7 +18,6 @@ CELEBRATION_DURATION: Final = 1.8
 COLLECTION_COMPLETION_DURATION: Final = 5.0
 FINAL_ANIMATION_DURATION: Final = 5.0
 COLLECTIBLE_TARGET: Final = 5
-ASSET_ROOT: Final = Path(__file__).resolve().parents[2] / "assets"
 
 
 @dataclass(frozen=True)
@@ -148,17 +148,19 @@ def run() -> None:
 
 
 def _load_sounds() -> tuple[pygame.mixer.Sound | None, pygame.mixer.Sound | None]:
+    asset_root = _asset_root()
     try:
         pygame.mixer.init()
         return (
-            pygame.mixer.Sound(ASSET_ROOT / "sounds" / "pickup.wav"),
-            pygame.mixer.Sound(ASSET_ROOT / "sounds" / "celebrate.wav"),
+            pygame.mixer.Sound(asset_root / "sounds" / "pickup.wav"),
+            pygame.mixer.Sound(asset_root / "sounds" / "celebrate.wav"),
         )
     except (FileNotFoundError, pygame.error):
         return None, None
 
 
 def _load_images() -> Assets:
+    asset_root = _asset_root()
     tile_names = {
         Terrain.GRASS: "grass.png",
         Terrain.PATH: "path.png",
@@ -167,24 +169,31 @@ def _load_images() -> Assets:
         Terrain.WATER: "water.png",
     }
     tiles = {
-        terrain: _load_scaled(ASSET_ROOT / "tiles" / filename)
+        terrain: _load_scaled(asset_root / "tiles" / filename)
         for terrain, filename in tile_names.items()
     }
     princess = {
-        (facing, frame): _load_scaled(ASSET_ROOT / "sprites" / f"princess_{facing}_{frame}.png")
+        (facing, frame): _load_scaled(asset_root / "sprites" / f"princess_{facing}_{frame}.png")
         for facing in ("down", "up", "left", "right")
         for frame in range(2)
     }
     return Assets(
         tiles=tiles,
-        gem=_load_scaled(ASSET_ROOT / "sprites" / "gem.png"),
-        flower=_load_scaled(ASSET_ROOT / "sprites" / "flower.png"),
-        gate_closed=_load_scaled(ASSET_ROOT / "sprites" / "gate_closed.png"),
-        gate_open=_load_scaled(ASSET_ROOT / "sprites" / "gate_open.png"),
-        exit_arrow=_load_scaled(ASSET_ROOT / "sprites" / "exit_arrow.png"),
-        tower=_load_scaled(ASSET_ROOT / "sprites" / "tower.png"),
+        gem=_load_scaled(asset_root / "sprites" / "gem.png"),
+        flower=_load_scaled(asset_root / "sprites" / "flower.png"),
+        gate_closed=_load_scaled(asset_root / "sprites" / "gate_closed.png"),
+        gate_open=_load_scaled(asset_root / "sprites" / "gate_open.png"),
+        exit_arrow=_load_scaled(asset_root / "sprites" / "exit_arrow.png"),
+        tower=_load_scaled(asset_root / "sprites" / "tower.png"),
         princess=princess,
     )
+
+
+def _asset_root() -> Path:
+    bundle_root = getattr(sys, "_MEIPASS", None)
+    if bundle_root is not None:
+        return Path(bundle_root) / "assets"
+    return Path(__file__).resolve().parents[2] / "assets"
 
 
 def _load_scaled(path: Path) -> pygame.Surface:

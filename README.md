@@ -4,6 +4,12 @@ A calm, full-screen, arrow-key exploration game for young children. Guide an ori
 
 Sunny Grove uses Python 3.13.5 and is tested on Windows, Ubuntu, and macOS.
 
+## Install On Windows
+
+Download the versioned `Sunny-Grove-Setup-<version>.exe` from the GitHub Release page and run it. The installer creates a Start Menu shortcut and can optionally add a desktop shortcut. Remove the game later from Windows Settings > Apps, or from the Start Menu uninstall entry.
+
+The first releases are unsigned. Windows may show a Microsoft Defender SmartScreen warning. Download only from this project's GitHub Releases page, then select More info and Run anyway if you trust the release.
+
 ## Run on Windows
 
 ```powershell
@@ -57,3 +63,20 @@ On Ubuntu and macOS:
 ```
 
 Use the arrow keys to move. At the final menu, use an arrow key to select Play again or Exit, then press Enter or Space. Escape or close the window quits.
+
+## Build The Windows Release
+
+Install the development dependencies, then build the portable game folder:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+powershell -ExecutionPolicy Bypass -File packaging\build_windows.ps1
+```
+
+The portable build is created in `dist\Sunny Grove`. To compile the installer, install [Inno Setup](https://jrsoftware.org/isinfo.php), then run:
+
+```powershell
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.0.0 packaging\sunny-grove.iss
+```
+
+The installer is written to `dist-installer`.
