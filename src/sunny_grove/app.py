@@ -49,7 +49,7 @@ def run() -> None:
     collection_completion_queue: list[CollectibleKind] = []
     finale_elapsed: float | None = None
     final_menu = False
-    play_again_selected = True
+    play_again_selected = False
     running = True
 
     while running:
@@ -365,15 +365,15 @@ def _draw_finale(
 
 
 def _draw_final_menu(screen: pygame.Surface, font: pygame.font.Font, play_again_selected: bool) -> None:
-    options = (("Play again", True), ("Exit", False))
+    options = (("Exit", False), ("Play again", True))
     for index, (label, is_play_again) in enumerate(options):
-        center_x = 370 + index * 220
+        center_x = 300 + index * 360
         selected = is_play_again == play_again_selected
         color = (255, 225, 100) if selected else (255, 239, 193)
-        pygame.draw.rect(screen, color, (center_x - 88, 462, 176, 48), border_radius=6)
-        pygame.draw.rect(screen, (109, 68, 78), (center_x - 88, 462, 176, 48), 3, border_radius=6)
+        pygame.draw.rect(screen, color, (center_x - 150, 470, 300, 66), border_radius=6)
+        pygame.draw.rect(screen, (109, 68, 78), (center_x - 150, 470, 300, 66), 3, border_radius=6)
         label_surface = font.render(label, True, (55, 47, 76))
-        screen.blit(label_surface, label_surface.get_rect(center=(center_x, 486)))
+        screen.blit(label_surface, label_surface.get_rect(center=(center_x, 503)))
 
 
 def _draw_hud(screen: pygame.Surface, state: GameState, assets: Assets, font: pygame.font.Font) -> None:
