@@ -2,6 +2,12 @@
 
 All notable changes to Sunny Grove are documented here.
 
+## [1.0.0-rc.4] - 2026-10-01
+
+### Fixed
+
+- Corrected the Inno Setup installer version override.
+
 ## [1.0.0-rc.3] - 2026-10-01
 
 ### Fixed
