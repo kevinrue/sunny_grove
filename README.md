@@ -76,7 +76,7 @@ powershell -ExecutionPolicy Bypass -File packaging\build_windows.ps1
 The portable build is created in `dist\Sunny Grove`. To compile the installer, install [Inno Setup](https://jrsoftware.org/isinfo.php), then run:
 
 ```powershell
-& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.0.0-rc.1 packaging\sunny-grove.iss
+& 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /DAppVersion=1.0.0-rc.3 packaging\sunny-grove.iss
 ```
 
 The installer is written to `dist-installer`.
