@@ -39,7 +39,8 @@ jobs:
         shell: pwsh
         run: |
           $game = Resolve-Path '.\dist\Sunny Grove\Sunny Grove.exe'
-          if (-not (Test-Path (Join-Path $game.Directory 'assets\tiles\grass.png'))) {
+          $asset = Join-Path (Split-Path -Parent $game.Path) '_internal\assets\tiles\grass.png'
+          if (-not (Test-Path $asset -PathType Leaf)) {
             throw 'Bundled grass tile was not found.'
           }
 
